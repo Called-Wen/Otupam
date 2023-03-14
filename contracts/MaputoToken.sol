@@ -15,7 +15,7 @@ contract MaputoToken{
     mapping(address => mapping(address => uint)) public allowance;
 
     address public philanthropicAddress;
-    uint public philanthropicFee = 1; // 0.01%
+    
 
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
@@ -47,15 +47,15 @@ contract MaputoToken{
     function mint() public {
         require(balanceOf[address(0)] >= 10000 * 10**uint(decimals));
         require(count == 1);
-        balanceOf[msg.sender] += 10000 * 10**uint(decimals);
-        balanceOf[address(0)] -= 10000 * 10**uint(decimals);
+        balanceOf[msg.sender] += 10000;
+        balanceOf[address(0)] -= 10000;
          
         count ++;
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success){
 
-        philanthropicValue = (_value * philanthropicFee) / 10000;
+        philanthropicValue = _value / 10000;
 
         require(balanceOf[msg.sender] >= _value+philanthropicValue);
         require(_to != address(0));
@@ -63,6 +63,8 @@ contract MaputoToken{
 
         balanceOf[msg.sender] -= _value;
         balanceOf[_to] += _value;
+
+        balanceOf[msg.sender] -= philanthropicValue;
         balanceOf[philanthropicAddress] += philanthropicValue;
 
         emit Transfer(msg.sender, _to, _value);
@@ -72,14 +74,20 @@ contract MaputoToken{
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success){
-        require(allowance[_from][msg.sender] >= _value);
-        require(balanceOf[_from] >= _value);
+                philanthropicValue = _value / 10000;
+
+        require(allowance[_from][msg.sender] >= _value+philanthropicValue);
+        require(balanceOf[_from] >= _value+philanthropicValue);
         require(_from != address(0));
         require(_to != address(0));
 
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         allowance[_from][msg.sender] -= _value;
+
+        balanceOf[_from] -= philanthropicValue;
+        balanceOf[philanthropicAddress] += philanthropicValue;
+        allowance[_from][msg.sender] -= philanthropicValue;
 
         emit Transfer(_from, _to, _value);
 
